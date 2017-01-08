@@ -41,11 +41,23 @@ def checkNull(df, col):
     for i in nanlist:
         print(df[i:i+1])
         print('Total number of null values: ',len(nanlist))
-def load2DF(fname):
-    #date_parser=lambda x: timezone('America/New_York').localize(datetime.datetime.strptime(x,'%Y%m%d%H:%M:%S.%f')).astimezone(timezone('CET'))
-    dataparse = lambda x: pytz.timezone('UTC').localize(datetime.datetime.strptime(x,'%Y%m%d %H%M')).astimezone(pytz.timezone(time_zone))
-    df = pd.read_csv(repo_dir+'/'+fname, compression='zip',header='infer', sep=',', encoding='us-ascii', index_col=1,parse_dates=['DateTime'],date_parser=dataparse, keep_date_col=True,dtype=datatype,keep_default_na=True,na_values=na_value_dict)
-    print(df[:-30])
+
+def get_positions(file, time_period):
+    date_parser=lambda x: datetime.datetime.strptime(x,'%Y%m')
+    df = pd.read_csv(file, sep=' ', header='infer', index_col=0, parse_dates=['DateTime'],date_parser=date_parser)
+    max_row_count = df['End'].max()
+    start_pos = df[df.index==df.index[df.index.year==time_period].min()].iloc[0]['Start']
+    end_pos = df[df.index==df.index[df.index.year==time_period].max()].iloc[0]['End']
+    return (start_pos, end_pos, max_row_count)
+
+def load2DF(fname,time_period):
+    row_range = get_positions(fname+'.info',time_period)
+    print(row_range)
+
+    skipped_range = list(range(1,int(row_range[0])))+list(range(int(row_range[1])+1,int(row_range[2])+2))
+    dateparse = lambda x: pytz.timezone('UTC').localize(datetime.datetime.strptime(x,'%Y%m%d %H%M')).astimezone(pytz.timezone(time_zone))
+    df = pd.read_csv(repo_dir+'/'+fname+'.zip', compression='zip',header='infer', sep=',', encoding='us-ascii', index_col=1,parse_dates=['DateTime'],date_parser=dateparse, keep_date_col=True,dtype=datatype,keep_default_na=True,na_values=na_value_dict,skiprows=skipped_range)
+    print("df is created")
     return df
 def getAnnualPeaks(df,col,year):
     yr = df.index.year
@@ -81,10 +93,15 @@ def getAnnualStat(df,col,year, low, high):
     criterion = df[y][col].map(lambda x: x >= low and x <= high)
     rate = len(df[y][criterion])/len(df[y].index)
     print('The annual rate of',col,'between',low,'and',high,'of year',year,'is:',"{:.3%}".format(rate))
+
+query_year=2015
 if argv and len(argv)>1:
     file_name = argv[1]
-    if len(argv)>2:
-        time_zone = argv[2]
+    if len(argv)==3:
+        query_year=int(argv[2])  
+    elif len(argv)==4:
+        query_year = argv[2]  
+        time_zone = argv[3]
 if file_name == '':
     print ('Scanning station zip files in the base folder: ', repo_dir)
     for name in glob.glob(repo_dir+'/*.zip'):
@@ -94,7 +111,8 @@ if file_name == '':
         df = load2DF(file+'.zip')
 else:
     print ('Scanning station zip files specified by user: ', file_name)
-    df = load2DF(file_name+'.zip')
+
+    df = load2DF(file_name,query_year)
     #print (df.where(df['Temp']!=np.nan))
     #print(df[df['Temp']>35])
     #getMean(df,'Temp')
@@ -102,7 +120,7 @@ else:
     #print(df.groupby(pd.TimeGrouper(freq='D'))['Temp'].max())
     #getPeakHours(df,'Temp')
     #getDailyPeaks(df,'Temp')
-    getAnnualPeaks(df,'Temp',2015)
+    getAnnualPeaks(df,'Temp',query_year)
     #checkNull(df,'Temp')
-    getAnnualStat(df,'Temp',2015,15,25)
-    getAnnualStat(df,'Temp',2015,10,30)
+    getAnnualStat(df,'Temp',query_year,15,25)
+    getAnnualStat(df,'Temp',query_year,10,30)
