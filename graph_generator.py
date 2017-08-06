@@ -29,8 +29,9 @@ font = {'weight': 'bold',
 colors = {
     'extremely_cold':'dark navy', 
     'very_cold':'navy', 
-    'cold':'blue', 
-    'cool':'skyblue', 
+    'freezing':'blue',
+    'cold':'skyblue', 
+    'cool':'khaki', 
     'mild':'gold', 
     'warm':'orange',
     'very_warm':'salmon',
@@ -45,8 +46,10 @@ def getColorByValue(value):
     if value <= -15:
         return colors['very_cold']
     if value <= 0:
-        return colors['cold']
+        return colors['freezing']
     if value < 10:
+        return colors['cold']
+    if value < 15:
         return colors['cool']
     if value < 20:
         return colors['mild']
