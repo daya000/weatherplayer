@@ -11,6 +11,7 @@ from sys import argv
 from dateutil.tz import tzutc
 from dateutil.parser import parse
 repo_dir = './stations'
+info_output_dir = './info'
 LIST = []
 time_zone = 'Etc/GMT-8'
 file_name = ''
@@ -48,6 +49,7 @@ def write2File(file, content):
         out.write('DateTime Start End\n')
         for item in content:
             out.write(item+'\n')
+
 if argv and len(argv)>1:
     file_name = argv[1]
     if len(argv)>2:
@@ -60,8 +62,8 @@ if file_name == '':
     for file in LIST:
         print ("Processing file:",file)
         df = load2DF(file+'.zip')
-        get_month_info(df,file+'.info')
+        get_month_info(df,info_output_dir+'/'+file+'.info')
 else:
     print ('Scanning station zip files specified by user: ', file_name)
     df = load2DF(file_name+'.zip')
-    get_month_info(df,file_name+'.info')
+    get_month_info(df,info_output_dir+'/'+file_name+'.info')
