@@ -51,7 +51,7 @@ def getColorByValue(value):
         return colors['cold']
     if value < 15:
         return colors['cool']
-    if value < 20:
+    if value <= 22:
         return colors['mild']
     if value <= 25:
         return colors['warm']
@@ -79,9 +79,9 @@ def polyFit(x,y):
 
 def drawColoredMaxMinPlots(cx):
 #render colored points representing daily max and min temperature
-    cx.scatter(dates, y, c=y.apply(lambda x: getColorByValue(x)),edgecolor='face')
-    cx.scatter(dates, df_max, c=df_max.apply(lambda x: getColorByValue(x)),edgecolor='face', marker='.')
-    cx.scatter(dates, df_min, c=df_min.apply(lambda x: getColorByValue(x)),edgecolor='face', marker='.')
+    cx.scatter(dates, y, s=15, c=y.apply(lambda x: getColorByValue(x)),edgecolor='face', marker='8')
+    cx.scatter(dates, df_max, s=3,  c=df_max.apply(lambda x: getColorByValue(x)),edgecolor='face', marker='.')
+    cx.scatter(dates, df_min, s=3,  c=df_min.apply(lambda x: getColorByValue(x)),edgecolor='face', marker='.')
 
 def drawNormalMaxMinPlots(cx):
 #render points representing daily max and min temperature in two predefined colors
@@ -112,7 +112,7 @@ if argv and len(argv)>1:
         query_year = argv[2]  
         time_zone = argv[3]
 
-df = reader.load2DF(file_name,query_year)
+df = reader.load2DF(file_name,query_year, False)
 yr = df.index.year
 year = ((yr>=query_year)&(yr<(query_year+1)))
 

@@ -37,14 +37,6 @@ na_value_dict = {
     'RHx':['999']
     }
 
-def get_positions(file, time_period):
-    date_parser=lambda x: datetime.datetime.strptime(x,'%Y%m')
-    df = pd.read_csv(file, sep=' ', header='infer', index_col=0, parse_dates=['DateTime'],date_parser=date_parser)
-    max_row_count = df['End'].max()
-    start_pos = df[df.index==df.index[df.index.year==time_period].min()].iloc[0]['Start']
-    end_pos = df[df.index==df.index[df.index.year==time_period].max()].iloc[0]['End']
-    return (start_pos, end_pos, max_row_count)
-
 def getStationTimezone(sid):
     df0 = pd.read_csv('./stationlist.csv',header='infer',sep='\t',index_col=False,dtype={'USAF':object})
     df=df0.set_index('USAF')
@@ -53,12 +45,25 @@ def getStationTimezone(sid):
     print("Timezone is found for",sid,"Timezone is:")
     return tzvalue
 
-def load2DF(fname,time_period):
+def get_positions(file, time_period, time_buffer):
+    date_parser=lambda x: datetime.datetime.strptime(x,'%Y%m')
+    df = pd.read_csv(file, sep=' ', header='infer', index_col=0, parse_dates=['DateTime'],date_parser=date_parser)
+    max_row_count = df['End'].max()
+    start_pos = 0
+    if time_buffer == True:
+        start_pos = df[df.index==df.index[df.index.year==(time_period-1)].max()].iloc[0]['Start']
+    else:
+        start_pos = df[df.index==df.index[df.index.year==time_period].min()].iloc[0]['Start']
+    end_pos = df[df.index==df.index[df.index.year==time_period].max()].iloc[0]['End']
+    return (int(start_pos), int(end_pos), int(max_row_count))
 
-    row_range = get_positions(station_info+'/'+fname+'.info',time_period)
-
-    skipped_range = list(range(1,int(row_range[0])))+list(range(int(row_range[1])+1,int(row_range[2])+2))
+def load2DF(fname,time_period,time_buffer):
+    row_range = get_positions(station_info+'/'+fname+'.info',time_period,time_buffer)
+    #skipped_range = list(range(1,int(row_range[0])))+list(range(int(row_range[1])+1,int(row_range[2])+2))
+    line_buffer = 10
+    skipped_range = list(range(1,row_range[0]-line_buffer))
+    nrows = row_range[1]-row_range[0]+line_buffer*2
     dateparse = lambda x: pytz.timezone('UTC').localize(datetime.datetime.strptime(x,'%Y%m%d %H%M')).astimezone(pytz.timezone(time_zone))
-    df = pd.read_csv(repo_dir+'/'+fname+'.zip', compression='zip',header='infer', sep=',', encoding='us-ascii', index_col=1,parse_dates=['DateTime'],date_parser=dateparse, keep_date_col=True,dtype=datatype,keep_default_na=True,na_values=na_value_dict,skiprows=skipped_range)
+    df = pd.read_csv(repo_dir+'/'+fname+'.zip', compression='zip',header='infer', sep=',', encoding='us-ascii', index_col=1,parse_dates=['DateTime'],date_parser=dateparse, keep_date_col=True,dtype=datatype,keep_default_na=True,na_values=na_value_dict,skiprows=skipped_range,nrows=nrows)
     print("df is created")
     return df

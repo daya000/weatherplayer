@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import file_reader as reader
+import os
 import numpy as np
 import render
 from sys import argv
@@ -8,6 +9,14 @@ LIST = []
 global file_name
 global query_year
 query_year = 2015
+interval = 1
+
+def write2File(file_name, content):
+    file_path = './stats/' + file_name + '.csv'
+    if not os.path.isfile(file_path):
+        content = '年, 年均气温, 年均日高温, 年均夜低温, 舒适温度比例, 可接受温度比例, 35°C高温日天数, 30°C高温日天数, 25°C高温夜天数, 10°C低温日天数, 0°C低温夜天数, 夏季天数, 冬季天数, 春秋天数, 最热月平均气温, 最冷月平均气温, 年温差, 年标准差, 日温差, 日标准差\n' + content
+    with open(file_path, 'a+') as f:
+        f.write(content + '\n')
 
 def checkNull(df, col):
     print("Null values detected!!")
@@ -15,6 +24,40 @@ def checkNull(df, col):
     for i in nanlist:
         print(df[i:i+1])
         print('Total number of null values: ',len(nanlist))
+
+def getStandardDeviation(df, col, year):
+    yr = df.index.year
+    y = ((yr>=year)&(yr<year+1))
+    daily_diff = df[y][col].resample('D').apply(lambda x: x.max() - x.min())
+    average_daily_diff = "{:.3f}".format(daily_diff.mean())
+    daily_temp_standard_deviation = "{:.3f}".format(df[col].resample('D').mean().std())
+    annual_temp_standard_deviation = "{:.3f}".format(df[y][col].std())
+    print("In Year", year, "the average dailly temperature difference is: ", average_daily_diff)
+    print("In Year", year, "the standard deviation of daily mean temperature across the year is: ", daily_temp_standard_deviation)
+    print("In Year", year, "the standard deviation of annual temperature of all records is: ", annual_temp_standard_deviation)
+
+    return annual_temp_standard_deviation, average_daily_diff, daily_temp_standard_deviation
+
+def getRollingMeanRange(file_name, year, col):
+    df = reader.load2DF(file_name, year, True)
+    yr = df.index.year
+    y = ((yr>=year)&(yr<(year+1)))
+
+    global interval
+    rolling_2days = df[col].rolling(interval * 2)
+    print('A list of greatest temperature changes till below dates:')
+    print(rolling_2days.apply(lambda x:x.max() - x.min()).resample('D').max().sort_values(ascending=False).head(n=20))
+    mean_series = df[col].resample('D').mean()
+    window = mean_series.rolling(30).mean()
+    max_date = window.idxmax()
+    max_avg_value = window.max()
+    min_date = window.idxmin()
+    min_avg_value = window.min()
+    annual_temp_difference = max_avg_value - min_avg_value
+    print(max_date,max_avg_value)
+    print(min_date,min_avg_value)
+
+    return "{:.3f}".format(max_avg_value), "{:.3f}".format(min_avg_value), "{:.3f}".format(annual_temp_difference)
 
 def getAnnualSeasonLengths(df, col, year):
     yr = df.index.year
@@ -26,9 +69,15 @@ def getAnnualSeasonLengths(df, col, year):
     summer = daily_mean.map(lambda x: x >= 22)
     winter = daily_mean.map(lambda x: x < 10)
 
-    print('Number of days in Summer: ',daily_mean[summer].count())
-    print('Number of days in winter: ',daily_mean[winter].count())
-    print('Number of days in Spinrg and Autumn: ',daily_mean[spring_and_autumn].count())
+    summer_length = daily_mean[summer].count()
+    winter_length = daily_mean[winter].count()
+    sping_and_autumn_length = daily_mean[spring_and_autumn].count()
+
+    print('Number of days in Summer: ',summer_length)
+    print('Number of days in winter: ',winter_length)
+    print('Number of days in Spinrg and Autumn: ',sping_and_autumn_length)
+
+    return summer_length, winter_length, sping_and_autumn_length
 
 def getEvenFourSeasonTemperatureRange(df, col, year):
     yr = df.index.year
@@ -48,20 +97,20 @@ def getDailySampleIntervals(df,col,year):
     yr = df.index.year
     y = ((yr>=year)&(yr<(year+1)))
     num_of_records = df[y][col].count()
-    interval = num_of_records/day_count
-    print('The records for year', year, 'are collected ', int(interval+0.5), 'times a day')
+    global interval
+    interval = int(0.5 + num_of_records/day_count)
+    print('The records for year', year, 'are collected ', interval, 'times a day')
 
 def getAnnualStats(df,col,year):
     yr = df.index.year
     y = ((yr>=year)&(yr<(year+1)))
     daily_high = df[y][col].resample('D').max()
     daily_low = df[y][col].resample('D').min()
-
-    max = daily_high.sum()
-    min = daily_low.sum()
-    min = df[y][col].resample('D').min().sum()
-    mean = df[y][col].resample('D').mean().sum()
-    count = df[y][col].resample('D').mean().count()
+    daily_mean = df[y][col].resample('D').mean()
+    count = daily_mean.count()
+    daily_high_temp_average = "{:.3f}".format(daily_high.mean())
+    daily_low_temp_average = "{:.3f}".format(daily_low.mean())
+    daily_mean_temp_average = "{:.3f}".format(daily_mean.sum()/count)
 
     pleasant_range = df[y][col].map(lambda x: x >= 15 and x <= 25)
     pleasant_rate = len(df[y][pleasant_range])/len(df[y].index)
@@ -74,23 +123,34 @@ def getAnnualStats(df,col,year):
     cold_days_below_10 = daily_high.map(lambda x: x < 10)
     cold_nights_below_0 = daily_low.map(lambda x: x < 0)
 
+    hot_days_above_35_count = daily_high[hot_days_above_35].count()
+    hot_days_above_30_count = daily_high[hot_days_above_30].count()
+    hot_nights_above_25_count = daily_low[hot_nights_above_25].count()
+    cold_days_below_10_count = daily_high[cold_days_below_10].count()
+    cold_nights_below_0_count = daily_low[cold_nights_below_0].count()
+
+    pleasant_value = "{:.3%}".format(pleasant_rate)
+    acceptable_value = "{:.3%}".format(acceptable_rate)
+
     print('Number of dialy records for year',year,'is ',count)
-    print('Number of hot days(>=35):',daily_high[hot_days_above_35].count())
+    print('Number of hot days(>=35):',hot_days_above_35_count)
     #print(daily_high[hot_days_above_35])
-    print('Number of hot days(>=30):',daily_high[hot_days_above_30].count())
-    print('Number of hot nights(>=25):',daily_high[hot_nights_above_25].count())
+    print('Number of hot days(>=30):',hot_days_above_30_count)
+    print('Number of hot nights(>=25):',hot_nights_above_25_count)
     #print(daily_low[hot_nights_above_25])
-    print('Number of cold days(<10):',daily_high[cold_days_below_10].count())
+    print('Number of cold days(<10):',cold_days_below_10_count)
     #print(daily_high[cold_days_below_10])
-    print('Number of cold nights(<0):',daily_low[cold_nights_below_0].count())
+    print('Number of cold nights(<0):',cold_nights_below_0_count)
     #print(daily_low[cold_nights_below_0])
 
-    print('The average high temperature of each day in year',year,'is: ',max/count)
-    print('The average low temperature of each day in year',year,'is: ',min/count)
-    print('The mean temperature of each day in year',year,'is: ', mean/count)
+    print('The average high temperature of each day in year',year,'is: ', daily_high_temp_average)
+    print('The average low temperature of each day in year',year,'is: ', daily_low_temp_average)
+    print('The mean temperature of each day in year',year,'is: ', daily_mean_temp_average)
     print('The average value of all records of year',year,'is:',df[y][col].mean())
-    print('The overall rate of',col,'between 15','and 25','of year',year,'is:',"{:.3%}".format(pleasant_rate))
-    print('The overall rate of',col,'between 10','and 30','of year',year,'is:',"{:.3%}".format(acceptable_rate))
+    print('The overall rate of',col,'between 15','and 25','of year',year,'is:', pleasant_value)
+    print('The overall rate of',col,'between 10','and 30','of year',year,'is:', acceptable_value)
+
+    return daily_mean_temp_average, daily_high_temp_average, daily_low_temp_average, pleasant_value, acceptable_value, hot_days_above_35_count, hot_days_above_30_count, hot_nights_above_25_count, cold_days_below_10_count, cold_nights_below_0_count
 
 def getPeakHours(df,col):
     print('Calculating statistics for column: '+col)
@@ -237,19 +297,27 @@ if argv and len(argv)>1:
         query_year = argv[2]  
         time_zone = argv[3]
 
-    df = reader.load2DF(file_name,query_year)
-
+    df = reader.load2DF(file_name,query_year,False)
     #print(df.groupby(pd.TimeGrouper(freq='M'))['Temp'].max())
 
     #getPeakHours(df,'Temp')
     #checkNull(df,'Temp')
 
-    #getAnnualStats(df,'Temp',query_year)
-    #getDailySampleIntervals(df,'Temp',query_year)
-    #getAnnualSeasonLengths(df,'Temp',query_year)
+    annualStats = getAnnualStats(df,'Temp',query_year)
+    getDailySampleIntervals(df,'Temp',query_year)
+    seasonLength = getAnnualSeasonLengths(df,'Temp',query_year)
     #getEvenFourSeasonTemperatureRange(df,'Temp',query_year)
     #getHeatIndexStats(df,query_year)
     #getNETStats(df,query_year)
     #getHumidityStat(df,query_year)
-    getTemperatureDistribution(df,query_year)
+    #getTemperatureDistribution(df,query_year)
+    rollingMean = getRollingMeanRange(file_name, query_year, 'Temp')
+    deviation = getStandardDeviation(df, 'Temp', query_year)
+
+    row = (query_year,) + annualStats + seasonLength + rollingMean + deviation
+    write2File(file_name, ', '.join(str(x) for x in row))
+
+
+
+
 
