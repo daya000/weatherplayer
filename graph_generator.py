@@ -145,4 +145,18 @@ cx.set_yticks(np.arange(-50,55,5))
 
 plt.xlabel('Date')
 plt.ylabel('Temperature')
-plt.savefig('./graphs/'+file_name+'_'+str(query_year)+'.png', dpi=200,facecolor='ghostwhite',transparent='true')
+
+station_names = reader.getStationName(file_name)
+cn_name = station_names[0].strip()
+en_name = station_names[1].strip()
+figure_folder_name = cn_name + '(' + en_name + ')'
+figure_folder_path = './graphs/' + figure_folder_name
+figure_name = figure_folder_name + '_' + file_name + '_' + str(query_year)
+figure_path = './graphs/' + figure_folder_name + '/' + figure_name + '.png'
+
+if not os.path.exists(figure_folder_path):
+    os.makedirs(figure_folder_path)    
+
+plt.savefig(figure_path, dpi=200,facecolor='ghostwhite',transparent='true')
+
+

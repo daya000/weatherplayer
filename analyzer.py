@@ -12,9 +12,12 @@ query_year = 2015
 interval = 1
 
 def write2File(file_name, content):
-    file_path = './stats/' + file_name + '.csv'
+    station_names = reader.getStationName(file_name)
+    cn_name = station_names[0].strip()
+    en_name = station_names[1].strip()
+    file_path = './stats/' + cn_name + '(' + en_name + ')' + '.csv'
     if not os.path.isfile(file_path):
-        content = '年, 年均气温, 年均日高温, 年均夜低温, 舒适温度比例, 可接受温度比例, 35°C高温日天数, 30°C高温日天数, 25°C高温夜天数, 10°C低温日天数, 0°C低温夜天数, 夏季天数, 冬季天数, 春秋天数, 最热月平均气温, 最冷月平均气温, 年温差, 年标准差, 日温差, 日标准差\n' + content
+        content = '年份, 年均气温, 年均日高温, 年均夜低温, 舒适温度比例, 可接受温度比例, 35°C高温日天数, 30°C高温日天数, 25°C高温夜天数, 10°C低温日天数, 0°C低温夜天数, 夏季天数, 冬季天数, 春秋天数, 最热月平均气温, 最冷月平均气温, 年温差, 年标准差, 日温差, 日标准差\n' + content
     with open(file_path, 'a+') as f:
         f.write(content + '\n')
 
@@ -299,10 +302,8 @@ if argv and len(argv)>1:
 
     df = reader.load2DF(file_name,query_year,False)
     #print(df.groupby(pd.TimeGrouper(freq='M'))['Temp'].max())
-
     #getPeakHours(df,'Temp')
     #checkNull(df,'Temp')
-
     annualStats = getAnnualStats(df,'Temp',query_year)
     getDailySampleIntervals(df,'Temp',query_year)
     seasonLength = getAnnualSeasonLengths(df,'Temp',query_year)
