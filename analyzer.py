@@ -82,6 +82,23 @@ def getAnnualSeasonLengths(df, col, year):
 
     return summer_length, winter_length, sping_and_autumn_length
 
+def getNoonTempInfo(df, col, year):
+    yr = df.index.year
+    y = ((yr>=year)&(yr<year+1))
+    noon_temp = df[y][col].resample('D').max()
+
+    hot_noons = noon_temp.map(lambda x: x >= 33)
+    very_warm_noons = noon_temp.map(lambda x: x > 28 and x < 33)
+    pleasant_noons = noon_temp.map(lambda x: x >= 15 and x < 28)
+    chilly_noons = noon_temp.map(lambda x: x >= 10 and x < 15)
+    cold_noons = noon_temp.map(lambda x: x < 10)
+
+    print('Number of hot noon days: ', noon_temp[hot_noons].count())
+    print('Number of very warm noon days: ', noon_temp[very_warm_noons].count())
+    print('Number of pleasant noon days: ', noon_temp[pleasant_noons].count())
+    print('Number of chilly noon days: ', noon_temp[chilly_noons].count())
+    print('Number of cold noon days: ', noon_temp[cold_noons].count())
+
 def getEvenFourSeasonTemperatureRange(df, col, year):
     yr = df.index.year
     y = ((yr>=year)&(yr<(year+1)))
@@ -195,6 +212,20 @@ def getHumidityStat(df,year):
     print('moderate Level Rate:',"{:.3%}".format(hdf[moderate].count()/records))
     print('wet Level Rate:',"{:.3%}".format(hdf[wet].count()/records))
     print('extra wet Level Rate:',"{:.3%}".format(hdf[ex_wet].count()/records))
+
+def predictWeatherConditions(df,year):
+    yr = df.index.year
+    y = ((yr>=year)&(yr<(year+1)))
+    daily_low_RHx = df[y]['RHx'].resample('D').min()
+    sunny = daily_low_RHx.map(lambda x: x <= 45)
+    cloudy = daily_low_RHx.map(lambda x: x > 45 and x <= 65)
+    rainy = daily_low_RHx.map(lambda x: x > 65)
+    sunny_days = daily_low_RHx[sunny].count()
+    cloudy_days = daily_low_RHx[cloudy].count()
+    rainy_days = daily_low_RHx[rainy].count()
+    print('There are ', sunny_days, ' sunny days')
+    print('There are ', cloudy_days, ' cloudy days')
+    print('There are ', rainy_days, ' rainy days')
 
 def calculateNetEffectiveTemperature(t:float,h:float,v:float):
     return 37-(37-t)/(0.68-0.0014*h+1/(1.76+1.4*v**0.75))-0.29*t*(1-0.01*h)
@@ -316,8 +347,9 @@ if argv and len(argv)>1:
     deviation = getStandardDeviation(df, 'Temp', query_year)
 
     row = (query_year,) + annualStats + seasonLength + rollingMean + deviation
-    write2File(file_name, ', '.join(str(x) for x in row))
-
+    #write2File(file_name, ', '.join(str(x) for x in row))
+    getNoonTempInfo(df, 'Temp', query_year)
+    predictWeatherConditions(df, query_year)
 
 
 
