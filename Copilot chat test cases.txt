@@ -1,0 +1,119 @@
+Test case1:  (Jira case)Table DDL cretion based on headers in csv file
+I want to create a table based on the data in Contacts.csv at path /Users/wjh/Code first line in the csv file is the headers generate the table DDL based on the headers and queries to insert data
+
+Copilot chat response: 
+Sure, here's an example DDL statement to create a table based on the data in Contacts.csv at path /Users/wjh/Code:
+CREATE TABLE Contacts (
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    company_name VARCHAR(255),
+    address VARCHAR(255),
+    city VARCHAR(255),
+    county VARCHAR(255),
+    state VARCHAR(255),
+    zip VARCHAR(255),
+    phone1 VARCHAR(255),
+    phone VARCHAR(255),
+    email VARCHAR(255)
+);
+
+This statement creates a Contacts table with eleven columns, one for each header in the CSV file. The column names match the header names in the CSV file.
+
+Here's an example query to insert data from Contacts.csv at path /Users/wjh/Code into the Contacts table:
+
+LOAD DATA INFILE '/Users/wjh/Code/Contacts.csv'
+INTO TABLE Contacts
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+This query uses the LOAD DATA INFILE statement to load data from /Users/wjh/Code/Contacts.csv into the Contacts table. The FIELDS TERMINATED BY ',' clause specifies that the fields in the CSV file are separated by commas. The ENCLOSED BY '"' clause specifies that fields are enclosed in double quotes. The LINES TERMINATED BY '\n' clause specifies that each row in the CSV file is terminated by a newline character. The IGNORE 1 ROWS clause specifies that the first row of the CSV file should be ignored, since it contains column headers.
+
+Note that the exact syntax of the LOAD DATA INFILE statement may vary depending on your database system and configuration. You may need to adjust the file path and other options to match your system.
+
+
+follow-up question: 
+how can I remove the duplicated data from Contacts table?
+
+Copilot answer:
+To remove duplicate data from the Contacts table, you can use the DISTINCT keyword in a SELECT statement to select only the unique rows, and then insert the results into a new table or overwrite the existing table. Here's an example query:
+
+CREATE TABLE Contacts_new AS
+SELECT DISTINCT *
+FROM Contacts;
+
+This query creates a new table called Contacts_new that contains only the unique rows from the Contacts table. The DISTINCT keyword ensures that only unique rows are selected.
+
+If you want to overwrite the existing Contacts table with the unique rows, you can use the RENAME statement to rename the existing table, and then use the CREATE TABLE statement to create a new table with the same name
+
+RENAME TABLE Contacts TO Contacts_old;
+CREATE TABLE Contacts AS
+SELECT DISTINCT *
+FROM Contacts_old;
+
+This query renames the existing Contacts table to Contacts_old, and then creates a new Contacts table with only the unique rows. Note that this will permanently delete any duplicate rows in the Contacts table.
+
+Before running any of these queries, it's a good idea to back up your data to avoid data loss.
+
+
+Test case 2: (Jira) describe Jira issue from link https://issues.apache.org/jira/browse/SPARK-43503 and come up with action plan.
+
+Copilot answered: (Non-relivant)
+The Jira issue SPARK-43503 is titled "Add support for reading and writing CSV files with a BOM". The issue is related to Spark's CSV data source, which currently does not support reading or writing CSV files with a byte order mark (BOM).
+
+
+Test case 3: (Error code analysis)
+how to fix IBM websphere MQ connection issue code AMQ7026E
+
+Copilot answered:
+
+The error code AMQ7026E in IBM WebSphere MQ indicates that there was an issue with the connection to the queue manager. Here are some steps you can take to troubleshoot and fix the issue:
+
+Check that the queue manager is running: Ensure that the queue manager is running and is accessible. You can check the status of the queue manager using the dspmq command.
+
+Check that the listener is running: Ensure that the listener is running and is configured to listen on the correct port. You can check the status of the listener using the dspmqver command.
+
+Check that the connection information is correct: Ensure that the connection information, such as the host name, port number, and channel name, is correct. You can check the connection information in the client application's code or configuration file.
+
+Check that the client has the necessary permissions: Ensure that the client has the necessary permissions to connect to the queue manager. You can check the permissions using the setmqaut command.
+
+Check the error logs: Check the error logs for more information about the error. The error logs can be found in the errors directory of the queue manager installation directory.
+
+Restart the queue manager: If none of the above steps resolve the issue, try restarting the queue manager and the client application.
+
+If the issue persists, you may need to contact IBM support for further assistance.
+
+Test case 4:  Write code with specific library and input file
+use Python pandas library to read the data in csv file at path /Users/wjh/Code/transactions.csv first line in the csv file is the headers write code to calculate rolling average of three days window of column 'balance' based on timestamp column 'timestamp'
+
+Here's an example code snippet that uses the Python pandas library to read the data from the CSV file at /Users/wjh/Code/transactions.csv, calculates the rolling average of a three-day window of the balance column based on the timestamp column, and prints the results:
+
+import pandas as pd
+
+# Read the CSV file into a pandas DataFrame
+df = pd.read_csv('/Users/wjh/Code/transactions.csv')
+
+# Convert the 'timestamp' column to a datetime object
+df['timestamp'] = pd.to_datetime(df['timestamp'])
+
+# Set the 'timestamp' column as the index
+df.set_index('timestamp', inplace=True)
+
+# Calculate the rolling average of a three-day window of the 'balance' column
+rolling_avg = df['balance'].rolling('3D').mean()
+
+# Print the results
+print(rolling_avg)
+
+
+This code first reads the CSV file into a pandas DataFrame using the read_csv function. It then converts the timestamp column to a datetime object using the to_datetime function, and sets the timestamp column as the index using the set_index method.
+
+The code then calculates the rolling average of a three-day window of the balance column using the rolling method with a 3D argument, which specifies a three-day window. Finally, the code prints the rolling average using the print function.
+
+Note that the exact syntax of the rolling method may vary depending on the version of pandas you are using.
+
+
+
+
+
