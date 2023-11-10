@@ -1,3 +1,157 @@
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.spark.SparkConf;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
+
+public class HdfsConnection {
+    public static void main(String[] args) {
+        String path = "hdfs:///user/test.csv";
+        String principal = "<principal>";
+        String keytab = "<keytab>";
+        String krb5conf = "<krb5conf>";
+        String appName = "HDFS Connection";
+        String master = "yarn";
+        String deployMode = "client";
+
+        SparkConf conf = new SparkConf()
+                .setAppName(appName)
+                .setMaster(master)
+                .set("spark.submit.deployMode", deployMode)
+                .set("spark.driver.extraJavaOptions", "-Djava.security.auth.login.config=<path-to-jaas-conf>")
+                .set("spark.executor.extraJavaOptions", "-Djava.security.auth.login.config=<path-to-jaas-conf>");
+
+        SparkSession spark = SparkSession.builder().config(conf).getOrCreate();
+
+        Configuration hadoopConf = spark.sparkContext().hadoopConfiguration();
+        hadoopConf.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
+        hadoopConf.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
+        hadoopConf.set("hadoop.security.authentication", "kerberos");
+        hadoopConf.set("hadoop.security.authorization", "true");
+        hadoopConf.set("hadoop.security.auth_to_local", "DEFAULT");
+        hadoopConf.set("dfs.namenode.kerberos.principal", "hdfs/_HOST@<realm>");
+        hadoopConf.set("dfs.datanode.kerberos.principal", "hdfs/_HOST@<realm>");
+        hadoopConf.set("dfs.webhdfs.enabled", "true");
+        hadoopConf.set("dfs.client.use.datanode.hostname", "true");
+        hadoopConf.set("dfs.client.failover.proxy.provider.<service>", "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider");
+        hadoopConf.set("dfs.ha.namenodes.<service>", "<namenode1>,<namenode2>");
+        hadoopConf.set("dfs.namenode.rpc-address.<service>.<namenode1>", "<namenode1-hostname>:<namenode1-port>");
+        hadoopConf.set("dfs.namenode.rpc-address.<service>.<namenode2>", "<namenode2-hostname>:<namenode2-port>");
+        hadoopConf.set("dfs.client.failover.proxy.<service>", "<namenode1-hostname>:<namenode1-port>,<namenode2-hostname>:<namenode2-port>");
+        hadoopConf.set("dfs.client.use.datanode.hostname", "true");
+        hadoopConf.set("dfs.client.read.shortcircuit", "true");
+        hadoopConf.set("dfs.client.file-block-storage-locations.timeout.millis", "300000");
+        hadoopConf.set("dfs.client.failover.connection.retries", "3");
+        hadoopConf.set("dfs.client.failover.connection.retries.on.timeouts", "true");
+        hadoopConf.set("dfs.client.failover.max.attempts", "3");
+        hadoopConf.set("dfs.client.failover.sleep.base.millis", "5000");
+        hadoopConf.set("dfs.client.failover.sleep.max.millis", "15000");
+        hadoopConf.set("dfs.client.failover.proxy.provider.<service>", "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider");
+        hadoopConf.set("dfs.client.failover.proxy.<service>", "<namenode1-hostname>:<namenode1-port>,<namenode2-hostname>:<namenode2-port>");
+        hadoopConf.set("dfs.client.use.datanode.hostname", "true");
+        hadoopConf.set("dfs.client.read.shortcircuit", "true");
+        hadoopConf.set("dfs.client.file-block-storage-locations.timeout.millis", "300000");
+        hadoopConf.set("dfs.client.failover.connection.retries", "3");
+        hadoopConf.set("dfs.client.failover.connection.retries.on.timeouts", "true");
+        hadoopConf.set("dfs.client.failover.max.attempts", "3");
+        hadoopConf.set("dfs.client.failover.sleep.base.millis", "5000");
+        hadoopConf.set("dfs.client.failover.sleep.max.millis", "15000");
+        hadoopConf.set("dfs.client.failover.proxy.provider.<service>", "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider");
+        hadoopConf.set("dfs.client.failover.proxy.<service>", "<namenode1-hostname>:<namenode1-port>,<namenode2-hostname>:<namenode2-port>");
+        hadoopConf.set("dfs.client.use.datanode.hostname", "true");
+        hadoopConf.set("dfs.client.read.shortcircuit", "true");
+        hadoopConf.set("dfs.client.file-block-storage-locations.timeout.millis", "300000");
+        hadoopConf.set("dfs.client.failover.connection.retries", "3");
+        hadoopConf.set("dfs.client.failover.connection.retries.on.timeouts", "true");
+        hadoopConf.set("dfs.client.failover.max.attempts", "3");
+        hadoopConf.set("dfs.client.failover.sleep.base.millis", "5000");
+        hadoopConf.set("dfs.client.failover.sleep.max.millis", "15000");
+        hadoopConf.set("dfs.client.failover.proxy.provider.<service>", "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider");
+        hadoopConf.set("dfs.client.failover.proxy.<service>", "<namenode1-hostname>:<namenode1-port>,<namenode2-hostname>:<namenode2-port>");
+        hadoopConf.set("dfs.client.use.datanode.hostname", "true");
+        hadoopConf.set("dfs.client.read.shortcircuit", "true");
+        hadoopConf.set("dfs.client.file-block-storage-locations.timeout.millis", "300000");
+        hadoopConf.set("dfs.client.failover.connection.retries", "3");
+        hadoopConf.set("dfs.client.failover.connection.retries.on.timeouts", "true");
+        hadoopConf.set("dfs.client.failover.max.attempts", "3");
+        hadoopConf.set("dfs.client.failover.sleep.base.millis", "5000");
+        hadoopConf.set("dfs.client.failover.sleep.max.millis", "15000");
+        hadoopConf.set("dfs.client.failover.proxy.provider.<service>", "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider");
+        hadoopConf.set("dfs.client.failover.proxy.<service>", "<namenode1-hostname>:<namenode1-port>,<namenode2-hostname>:<namenode2-port>");
+        hadoopConf.set("dfs.client.use.datanode.hostname", "true");
+        hadoopConf.set("dfs.client.read.shortcircuit", "true");
+        hadoopConf.set("dfs.client.file-block-storage-locations.timeout.millis", "300000");
+        hadoopConf.set("dfs.client.failover.connection.retries", "3");
+        hadoopConf.set("dfs.client.failover.connection.retries.on.timeouts", "true");
+        hadoopConf.set("dfs.client.failover.max.attempts", "3");
+        hadoopConf.set("dfs.client.failover.sleep.base.millis", "5000");
+        hadoopConf.set("dfs.client.failover.sleep.max.millis", "15000");
+        hadoopConf.set("dfs.client.failover.proxy.provider.<service>", "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider");
+        hadoopConf.set("dfs.client.failover.proxy.<service>", "<namenode1-hostname>:<namenode1-port>,<namenode2-hostname>:<namenode2-port>");
+        hadoopConf.set("dfs.client.use.datanode.hostname", "true");
+        hadoopConf.set("dfs.client.read.shortcircuit", "true");
+        hadoopConf.set("dfs.client.file-block-storage-locations.timeout.millis", "300000");
+        hadoopConf.set("dfs.client.failover.connection.retries", "3");
+        hadoopConf.set("dfs.client.failover.connection.retries.on.timeouts", "true");
+        hadoopConf.set("dfs.client.failover.max.attempts", "3");
+        hadoopConf.set("dfs.client.failover.sleep.base.millis", "5000");
+        hadoopConf.set("dfs.client.failover.sleep.max.millis", "15000");
+        hadoopConf.set("dfs.client.failover.proxy.provider.<service>", "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider");
+        hadoopConf.set("dfs.client.failover.proxy.<service>", "<namenode1-hostname>:<namenode1-port>,<namenode2-hostname>:<namenode2-port>");
+        hadoopConf.set("dfs.client.use.datanode.hostname", "true");
+        hadoopConf.set("dfs.client.read.shortcircuit", "true");
+        hadoopConf.set("dfs.client.file-block-storage-locations.timeout.millis", "300000");
+        hadoopConf.set("dfs.client.failover.connection.retries", "3");
+        hadoopConf.set("dfs.client.failover.connection.retries.on.timeouts", "true");
+        hadoopConf.set("dfs.client.failover.max.attempts", "3");
+        hadoopConf.set("dfs.client.failover.sleep.base.millis", "5000");
+        hadoopConf.set("dfs.client.failover.sleep.max.millis", "15000");
+        hadoopConf.set("dfs.client.failover.proxy.provider.<service>", "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider");
+        hadoopConf.set("dfs.client.failover.proxy.<service>", "<namenode1-hostname>:<namenode1-port>,<namenode2-hostname>:<namenode2-port>");
+        hadoopConf.set("dfs.client.use.datanode.hostname", "true");
+        hadoopConf.set("dfs.client.read.shortcircuit", "true");
+        hadoopConf.set("dfs.client.file-block-storage-locations.timeout.millis", "300000");
+        hadoopConf.set("dfs.client.failover.connection.retries", "3");
+        hadoopConf.set("dfs.client.failover.connection.retries.on.timeouts", "true");
+        hadoopConf.set("dfs.client.failover.max.attempts", "3");
+        hadoopConf.set("dfs.client.failover.sleep.base.millis", "5000");
+        hadoopConf.set("dfs.client.failover.sleep.max.millis", "15000");
+        hadoopConf.set("dfs.client.failover.proxy.provider.<service>", "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider");
+        hadoopConf.set("dfs.client.failover.proxy.<service>", "<namenode1-hostname>:<namenode1-port>,<namenode2-hostname>:<namenode2-port>");
+        hadoopConf.set("dfs.client.use.datanode.hostname", "true");
+        hadoopConf.set("dfs.client.read.shortcircuit", "true");
+        hadoopConf.set("dfs.client.file-block-storage-locations.timeout.millis", "300000");
+        hadoopConf.set("dfs.client.failover.connection.retries", "3");
+        hadoopConf.set("dfs.client.failover.connection.retries.on.timeouts", "true");
+        hadoopConf.set("dfs.client.failover.max.attempts", "3");
+        hadoopConf.set("dfs.client.failover.sleep.base.millis", "5000");
+        hadoopConf.set("dfs.client.failover.sleep.max.millis", "15000");
+        hadoopConf.set("dfs.client.failover.proxy.provider.<service>", "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider");
+        hadoopConf.set("dfs.client.failover.proxy.<service>", "<namenode1-hostname>:<namenode1-port>,<namenode2-hostname>:<namenode2-port>");
+
+        System.setProperty("java.security.krb5.conf", krb5conf);
+        System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
+        System.setProperty("sun.security.krb5.debug", "true");
+        System.setProperty("java.security.auth.login.config", "<path-to-jaas-conf>");
+
+        try {
+            UserGroupInformation.setConfiguration(hadoopConf);
+            UserGroupInformation.loginUserFromKeytab(principal, keytab);
+            FileSystem fs = FileSystem.get(hadoopConf);
+            Path csvPath = new Path(path);
+            Dataset<Row> df = spark.read().option("header", "true").csv(fs.makeQualified(csvPath).toString());
+            df.show();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            spark.stop();
+        }
+    }
+}
+
+
 Test case1:  (Jira case)Table DDL cretion based on headers in csv file
 I want to create a table based on the data in Contacts.csv at path /Users/wjh/Code first line in the csv file is the headers generate the table DDL based on the headers and queries to insert data
 
