@@ -1,0 +1,53 @@
+{  
+    "recordDetails": [],  // 假设recordDetails是一个空数组，因为原文本中没有具体值  
+    "total": 23,  
+    "noOfRecordsPerPage": 50,  
+    "currentPageOffset": 1,  
+    "message": null,  
+    "accountDetails": [  
+        {  
+            "accountId": "933365",  
+            "accountBranch": "-1",  
+            "accountType": "Mc",  
+            "spreadTypes": [  
+                {  
+                    "spreadType": "QUOTED",  
+                    "spreadTypeIdentifier": "QuoTED",  
+                    "currencyPockets": [  
+                        {  
+                            "currencyPocketType": "CCYCATCCYCAT",  
+                            "CCy1Value": "MR_FX_QUOTED_BENCH_-1EM",  // 注意这里的引号修正  
+                            "cCy2Value": "MR_FX_QUOTED_BENCH_-1_EMPlusUSD",  // 注意这里的引号修正  
+                            "instruments": [  
+                                {  
+                                    "instrument": "SPOT",  
+                                    "spreadHierarchyTypes": [  
+                                        {  
+                                            "spreadHierarchyType": "DEF",  
+                                            "spreadCategory": "PRODUCT",  
+                                            "spreadMethod": "BASISPOINTS",  
+                                            "tenors": [  
+                                                {  
+                                                    "tenor": "sp",  
+                                                    "limits": [  
+                                                        {  
+                                                            "inclusiveLowerLimit": 1,  // 假设这是一个具体的数字  
+                                                            // 注意这里缺少inclusiveUpperLimit的值，我会暂时省略它  
+                                                            "maxLimit": true  
+                                                        }  
+                                                    ],  
+                                                    // 假设spread是一个具体的值，但由于文本中未给出，我将使用占位符  
+                                                    "spread": "PLACEHOLDER_SPREAD_VALUE"  
+                                                }  
+                                            ]  
+                                        }  
+                                    ]  
+                                }  
+                            ]  
+                        }  
+                    ]  
+                }  
+            ]  
+        }  
+    ]  
+}
